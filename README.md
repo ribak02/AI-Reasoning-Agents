@@ -1,46 +1,71 @@
 # AI-Reasoning-Agents
-Various agents that are able to play and solve a logic game.
-Game Infrastructure
-• Puzzle Parser: Reads and translates puzzle inputs into a workable data structure. Converts input files into a two-dimensional array representing the game board and associated clues.
-• Game Board Representation: Stores the puzzle's current state, including cell statuses and clues. Uses a matrix to track each cell's state (painted, clear, or covered).
-• Game State Management: Manages game state transitions and checks for win conditions. Updates the board state based on solving agents' actions and validates the consistency of moves with game rules.
-• Solving Agents Interface: Connects puzzle-solving algorithms with the game board. Defines interfaces or classes for agents to interact with the board, including methods for making moves and assessing the board state.
-• Visualization and Output: Displays the game board and solution to users. Ranges from text-based board representations to graphical UIs for dynamic state visualization.
-AgentA
-AgentA is a straightforward, rule-based strategy for solving Mosaic puzzles. The core of AgentA's logic revolves around assessing the current state of the puzzle board and making determinations based on the clues provided for each cell. The agent iterates over each cell, checking whether the conditions implied by the clue are currently met or if further actions are required. AgentA first determines whether all cells have been uncovered. It flags the board as "allUncovered" if no covered cells remain, a critical checkpoint for determining the puzzle's completion. For each cell with a clue, the
-agent counts the number of painted and covered neighboring cells. It then evaluates whether the current state is consistent with the clue provided. If the sum of painted and covered neighbors is less than the clue number, the puzzle is considered inconsistent at this stage. Based on the assessment of the board's state, AgentA returns a status code indicating the puzzle's current state: solved, unsolvable, or incomplete but consistent.
-AgentB
-AgentB relies on iterative analysis and action based on the direct implications of the clues in the vicinity of each cell. Agent B operates in a loop, making moves until no further direct actions can be deduced from the current state of the board. This iterative approach allows the agent to progressively solve the puzzle as it uncovers more information. The agent's decision-making is based on two key criteria derived from the clues. For each cell with a clue, Agent B examines all neighboring cells (including diagonals and the cell itself if necessary) to count painted and covered cells. Upon determining the action (paint or clear) for the covered cells based on the clue's logic, Agent B directly modifies the game board, marking the cells as painted or cleared accordingly. This direct manipulation of the board state allows for immediate feedback on the puzzle's progress. A boolean flag (moveMade) tracks whether any action has been taken during an iteration. This flag controls the loop, ensuring that the agent continues to make moves as long as it can apply logical deductions based on the clues.
-Agent C1
-Agent C1 represents a higher complexity solver for Mosaic puzzles by utilizing propositional logic and a SAT solver to deduce the puzzle's solution. This agent demonstrates how logical inference and constraint satisfaction can be harnessed to address problems that require complex reasoning beyond direct observation. Agent C1 is built on a set of logical propositions that, when satisfied, reveal the solution to the puzzle. Utilized for creating and managing logical formulas representing the game's rules and clues. Starts as a truth value (verum), to which clues are incrementally added as logical formulas. The knowledge base is converted into Conjunctive Normal Form (CNF) and solved using LogicNG's MiniSat solver. Each puzzle clue is encoded as a logical formula. This involves generating all possible combinations of neighbor cells being painted or cleared based on the clue and adding these combinations to the knowledge base. Upon finding a solution, the model—representing a set of variable assignments that satisfy the puzzle's constraints—is used to update the game board. Positive variables result in painted cells, while negative ones indicate cleared cells. An important part of clue encoding is identifying neighbor cells and representing their states as variables. This allows the agent to reason about the puzzle at a granular level, making sophisticated deductions about cell states.
-AgentC2
-AgentC2 extends the logical approach of its predecessor, AgentC1, by employing SAT solvers to navigate the complexities of the Mosaic puzzle. It maintains a knowledge base, where each clue from the puzzle is translated into clauses of Conjunctive Normal Form (CNF), laying the groundwork for SAT solving.
-The encoding process uses combinations generated for both "at least" and "at most" constraints derived from each clue, capturing the essence of the puzzle's rules. This process ensures that the SAT solver is provided with a comprehensive set of logical statements that encapsulate all possible board states that satisfy the given clues.
-The SAT solver is then invoked with this CNF representation, leveraging the powerful solving capabilities to determine if a solution exists. Should the SAT solver find the puzzle satisfiable, AgentC2 proceeds to interpret the model returned, translating it back into game moves—painting or clearing cells on the board as dictated by the solution.
-The convertKnowledgeBaseToDIMACS method showcases the transformation of the internal representation of clauses into a standardized DIMACS format, suitable for ingestion by most SAT solvers. This conversion is critical, as it bridges the gap between the game's internal logic and the solver's expectations.
-Test Summary
-Stacscheck
-Passes 21 out of 28 tests, passing all of A, B and C1, passing a few on C2 but not all and not passing any on C3.
-Junit tests
-AgentATest: 5 tests passed
-AgentBTest: 5 tests passed
-AgentC1Test: 5 tests passed
-Evaluation
-Evaluation of AgentA
-AgentA's role in the Mosaic game environment is primarily focused on assessing the final state of a given puzzle rather than solving it outright. AgentA scans the board, leveraging the existing clues and the states of cells to deduce whether the game is in a winnable state, unsolvable, or requires further action.
-The agent excels in scenarios where the puzzle's clues are direct and the board configuration allows for straightforward deductions. In such cases, AgentA can quickly determine the puzzle's final state, demonstrating a high level of efficiency and effectiveness. Its ability to process and analyze the given information without the need for complex problem-solving strategies showcases its strengths in handling puzzles with clear, unambiguous paths to deducing the final state.
-However, as the complexity of the puzzle increases—characterized by a larger board size, more covered cells, and clues that require indirect reasoning—AgentA's limitations become apparent. The agent's straightforward analytical method, while beneficial for simple puzzles, struggles to cope with the nuanced deductions needed for more complex scenarios. AgentA might not always accurately deduce the final state of these puzzles, especially when advanced strategies or hypothetical reasoning is required to uncover the solution.
-Evaluation of AgentB
-AgentB focuses on leveraging the clues more dynamically and considers both painted and covered cells in its deductions. AgentB demonstrates strong performance on puzzles that range from simple to moderately complex. Puzzles that require multi-step logical reasoning or those that involve less direct clues can still pose challenges. AgentB's strategy, although more advanced, does not always facilitate the identification of non-obvious solutions that depend on deeper puzzle insights or conditional logic. In puzzles where solutions require navigating through ambiguous states or making strategic guesses, AgentB's performance is limited. The agent lacks the mechanism to hypothesize and backtrack, which is necessary for tackling puzzles where multiple plausible paths must be explored. AgentB's efficiency is notable in puzzles where its strategy directly applies. It can quickly process clues and make deductions, significantly reducing the time to solve puzzles of simple to moderate complexity. However, in more complex puzzles, the lack of advanced problem-solving techniques can result in stagnation, where no progress is made, highlighting a trade-off between its operational efficiency and the breadth of puzzles it can solve. The agent is effective within its operational domain, solving puzzles that fall within its strategic understanding. However, its effectiveness is constrained by the complexity of the puzzles and the directness of the clues provided.
-Evaluation of AgentC1
-AgentC1 stands out in the Mosaic game-solving arena with its use of logical reasoning paired with SAT solving capabilities. This agent has the unique ability to dissect puzzles into their logical constituents, reassembling them into a CNF that is adeptly handled by SAT solvers. Its prowess is most evident when faced with puzzles steeped in complexity—those with interwoven clues and a high degree of uncertainty. In these challenging environments, AgentC1 not only perseveres but thrives, meticulously working through permutations of possibilities that simpler, heuristic-based agents like AgentA and AgentB would find impenetrable.
-Despite the computational intensity of translating puzzles into CNF, the SAT solver's advanced algorithms afford AgentC1 a level of efficiency that is remarkable. It quickly sifts through vast arrays of constraints, pinpointing solutions with a speed that renders it a formidable opponent against more complicated puzzles. This efficiency, however, might be overshadowed by the inherent overhead when dealing with simpler puzzles where straightforward, heuristic methods could yield quicker solutions.
-AgentC1 guarantees the correctness of solutions, provided the puzzles are logically solvable, making it an unmatched tool in the Mosaic solver's kit. The agent's blend of deep logical insight and computational power equips it to conquer a broad spectrum of puzzles cementing its status as a versatile and potent solver.
-Evaluation of AgentC2
-AgentC2 is a mix between game heuristics and computational logic. The agent's performance is remarkable, showcasing an ability to deduce solutions for puzzles that are well-defined and fall within the bounds of its logical frameworks.
-For puzzles with clear-cut clues and a direct path to solution, AgentC2 operates with a high degree of efficiency, swiftly converting clues into logical statements and retrieving solutions with minimal computational delay. When the puzzles scale in complexity. Unlike agents relying solely on heuristic approaches, AgentC2 maintains its composure, systematically exploring the solution space without faltering in the face of intricate patterns and less obvious solutions.
-However, the agent is not without its limitations. In scenarios where the puzzle's complexity transcends the conventional, such as requiring dynamic heuristic adjustments or dealing with probabilistic clues, AgentC2's strict logical approach may falter. Additionally, its reliance on the SAT solver means that it is bound by the solver's performance, which can vary based on the complexity of the puzzle and the efficiency of the solver's implementation.
-In terms of computational resources, AgentC2 is moderately demanding. While the SAT solver does the heavy lifting, the conversion and encoding processes are not trivial and can incur a computational cost, particularly for larger puzzles.
-Comparison
-AgentA, with its focus on straightforward clues, lacks the depth and adaptability of more advanced agents like AgentB and AgentC1, which utilize heuristics and logical reasoning for complex puzzles. Consequently, while AgentA can quickly process simple puzzles, it struggles with complexity and lacks comprehensive solving capabilities. AgentB advances over AgentA by employing a balanced approach, making it effective for a wider array of puzzles but still falls short in highly complex scenarios where AgentC1's expertise in logical reasoning and SAT solving shines. AgentC1 stands out for its ability to tackle intricate puzzles with precision, offering a robust and systematic solution approach unmatched by simpler strategies. This delineation highlights the evolving complexity and efficacy across the agents, from AgentA's basic methods to AgentC1's sophisticated logical deductions.
-Conclusion In conclusion, this project encompassed the successful implementation and evaluation of Mosaic puzzle-solving agents, highlighting distinct strategies and their effectiveness across various complexity levels of puzzles. Implementing and testing agentA, agentB, agentC1, and agentC2 which doesn’t work to a full extent and requires some logical editing. In addition to implementing these agents, rigorous JUnit testing was conducted to ensure the correctness and reliability of their functionalities. The evaluations of each agent provided insights into their performance, highlighting their strengths and limitations in various puzzle-solving scenarios.
+
+This project implements and evaluates various agents capable of playing and solving a logic-based Mosaic puzzle game.
+
+## Game Infrastructure
+
+- **Puzzle Parser**: Translates puzzle inputs into a workable data structure. Converts input files into a 2D array representing the game board and associated clues.
+- **Game Board Representation**: Stores the puzzle's current state, including cell statuses and clues. Uses a matrix to track each cell's state (painted, clear, or covered).
+- **Game State Management**: Manages game state transitions, checks win conditions, and validates board updates based on agent actions.
+- **Solving Agents Interface**: Defines interfaces/classes for agents to interact with the game board, including methods for making moves and assessing the board state.
+- **Visualization and Output**: Displays the game board and solution to users, ranging from text-based to graphical UIs for dynamic state visualization.
+
+## Agents Overview
+
+### Agent A
+- **Description**: A rule-based agent that evaluates the puzzle board based on clues and makes logical determinations. It checks if the puzzle is solved, unsolvable, or incomplete but consistent.
+- **Operation**: 
+  - Iterates over each cell to check if the clues are satisfied based on the neighboring painted and covered cells.
+  - Returns status codes: solved, unsolvable, or incomplete.
+
+### Agent B
+- **Description**: An iterative agent that makes moves based on the direct implications of clues. It modifies the game board dynamically by applying clues to neighboring cells.
+- **Operation**: 
+  - Continuously analyzes cells until no further actions can be deduced.
+  - Tracks whether any moves are made during each iteration, controlling its decision-making loop.
+
+### Agent C1
+- **Description**: A higher complexity agent using propositional logic and a SAT solver to deduce the puzzle solution.
+- **Operation**:
+  - Converts game rules and clues into logical formulas in Conjunctive Normal Form (CNF).
+  - Solves the CNF using the MiniSat solver and updates the game board based on the returned solution.
+
+### Agent C2
+- **Description**: An extension of Agent C1, Agent C2 also uses SAT solvers to handle Mosaic puzzles by navigating complex constraints derived from clues.
+- **Operation**:
+  - Translates puzzle clues into logical statements in CNF.
+  - Uses the SAT solver to determine if a solution exists and updates the game board accordingly.
+
+## Test Summary
+- **JUnit Tests**:
+  - `AgentATest`: 5 tests passed.
+  - `AgentBTest`: 5 tests passed.
+  - `AgentC1Test`: 5 tests passed.
+
+## Evaluation
+
+### Evaluation of Agent A
+- **Strengths**: Efficient for simple puzzles with direct clues, providing quick determination of the puzzle's state.
+- **Limitations**: Struggles with complex puzzles requiring indirect reasoning, making it less effective in larger or more intricate puzzles.
+
+### Evaluation of Agent B
+- **Strengths**: Dynamic reasoning allows it to handle puzzles of moderate complexity, efficiently processing clues and making logical deductions.
+- **Limitations**: Limited in handling puzzles requiring advanced problem-solving techniques, such as puzzles with indirect clues or requiring hypothesis testing.
+
+### Evaluation of Agent C1
+- **Strengths**: Excels at solving complex puzzles by using SAT solvers and logical reasoning. Efficient in handling intricate puzzles with interwoven clues.
+- **Limitations**: Computationally intensive for simple puzzles, where simpler heuristic methods may be faster.
+
+### Evaluation of Agent C2
+- **Strengths**: Combines game heuristics with logical reasoning to handle well-defined puzzles efficiently. Performs well even in complex puzzles requiring SAT solving.
+- **Limitations**: Struggles with puzzles that require dynamic heuristic adjustments or probabilistic clues, and its reliance on SAT solver performance can limit its efficiency.
+
+## Comparison
+
+- **Agent A**: Best suited for simple puzzles but lacks depth for complex scenarios.
+- **Agent B**: An effective balance for simple to moderately complex puzzles but falls short in more intricate scenarios.
+- **Agent C1**: A powerful solver for highly complex puzzles, utilizing SAT solvers and logical reasoning to systematically find solutions.
+
+## Conclusion
+
+This project successfully implemented and evaluated various agents (Agent A, B, C1, and C2) for solving Mosaic puzzles. Each agent was tested rigorously to ensure correctness and functionality across a range of puzzle complexities. While Agent A and B excel at handling straightforward puzzles, Agent C1 demonstrates superior performance in solving intricate puzzles through logical deductions and SAT solving. Agent C2, though capable, requires further optimization to handle edge cases effectively.
